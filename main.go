@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -15,6 +17,15 @@ func (protoMessage *ProtoMessage) Generate(plugin *protogen.Plugin) error {
 		if len(file.Services) == 0 {
 			continue
 		}
+
+		fileName := strings.Replace(file.Desc.Path(), ".proto", "", 1)
+
+		generatedFileName := fileName + "_fake.ts"
+		generatedFilePath := protogen.GoImportPath(file.Desc.Path())
+
+		t := plugin.NewGeneratedFile(generatedFileName, generatedFilePath)
+
+		t.P("hoge\nfuga")
 	}
 
 	return nil
