@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/iancoleman/strcase"
@@ -41,11 +42,31 @@ func (protoMessage *ProtoMessage) GenerateFakeDataClass(message *protogen.Messag
 		fmt.Sprintf("export const %s = {", strcase.ToLowerCamel(string(message.Desc.Name()))),
 	}
 	for _, field := range message.Fields {
-		code = append(code, fmt.Sprintf("%s%s", strings.Repeat(" ", SpaceCharacterNum), field.GoName))
+		code = append(
+			code,
+			fmt.Sprintf("%s%s", strings.Repeat(" ", SpaceCharacterNum), strcase.ToLowerCamel(field.GoName)),
+		)
+		_ = protoMessage.GenerateStructForFaker(message)
 	}
 	code = append(code, "}")
 
 	return code
+}
+
+func (protoMessage *ProtoMessage) GenerateStructForFaker(message *protogen.Message) reflect.Value {
+	var fields []reflect.StructField
+
+	for _, field := range message.Fields {
+		fields = append(fields, reflect.StructField{
+			Name: field.GoName,
+			//Type: reflect.TypeOf(field.Desc.Kind().String()),
+			Type: reflect.TypeOf(""),
+			Tag:  "",
+		})
+	}
+	structDef := reflect.New(reflect.StructOf(fields))
+
+	return structDef.Elem()
 }
 
 func main() {
