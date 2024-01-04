@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-const SPACE_CHARACTER_NUM = 4
+const SpaceCharacterNum = 4
 
 type ProtoMessage struct {
 	messages []protoreflect.FullName
@@ -41,7 +41,7 @@ func (protoMessage *ProtoMessage) GenerateFakeDataClass(message *protogen.Messag
 		fmt.Sprintf("export const %s = {", strcase.ToLowerCamel(string(message.Desc.Name()))),
 	}
 	for _, field := range message.Fields {
-		code = append(code, fmt.Sprintf("%s%s", strings.Repeat(" ", SPACE_CHARACTER_NUM), field.GoName))
+		code = append(code, fmt.Sprintf("%s%s", strings.Repeat(" ", SpaceCharacterNum), field.GoName))
 	}
 	code = append(code, "}")
 
