@@ -104,6 +104,7 @@ func mapProtoKindToGoTypes(field *protogen.Field) (reflect.StructField, error) {
 			Type: reflect.TypeOf(""),
 			Tag:  "",
 		}, nil
+	// TODO: Add more kinds
 	default:
 		return reflect.StructField{}, errors.New("invalid protoreflect type deteceted")
 	}
