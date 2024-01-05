@@ -21,19 +21,20 @@ type ProtoMessage struct {
 func (protoMessage *ProtoMessage) Generate(plugin *protogen.Plugin) error {
 	protoFiles := plugin.Files
 	for _, file := range protoFiles {
-		fileName := strings.Replace(file.Desc.Path(), ".proto", "", 1)
-
-		generatedFileName := fileName + "_fake.ts"
-		generatedFilePath := protogen.GoImportPath(file.Desc.Path())
-
-		t := plugin.NewGeneratedFile(generatedFileName, generatedFilePath)
-
-		var code []string
 
 		for _, message := range file.Messages {
+			fileName := message.GoIdent.GoName
+			generatedFileName := fileName + "_fake.ts"
+			generatedFilePath := protogen.GoImportPath(file.Desc.Path())
+
+			t := plugin.NewGeneratedFile(generatedFileName, generatedFilePath)
+
+			var code []string
+
 			code = append(code, protoMessage.GenerateFakeDataClass(message)...)
+
+			t.P(strings.Join(code[:], "\n"))
 		}
-		t.P(strings.Join(code[:], "\n"))
 	}
 
 	return nil
