@@ -43,20 +43,30 @@ func (protoMessage *ProtoMessage) GenerateFakeDataClass(message *protogen.Messag
 	var code = []string{
 		fmt.Sprintf("export const %s = {", strcase.ToLowerCamel(string(message.Desc.Name()))),
 	}
-	for _, field := range message.Fields {
-		code = append(
-			code,
-			fmt.Sprintf("%s%s", strings.Repeat(" ", SpaceCharacterNum), strcase.ToLowerCamel(field.GoName)),
-		)
-		str := protoMessage.GenerateStructForFaker(message).Interface()
-		err := faker.FakeData(&str)
 
-		if err != nil {
-			fmt.Println(err)
-		}
+	str := protoMessage.GenerateStructForFaker(message).Interface()
+	err := faker.FakeData(&str)
 
-		code = append(code, fmt.Sprintf("%+v", str))
+	if err != nil {
+		fmt.Println(err)
 	}
+
+	strValue := reflect.ValueOf(str)
+	strType := reflect.TypeOf(str)
+
+	for i := 0; i < strValue.NumField(); i++ {
+		field := strType.Field(i)
+		fieldValue := strValue.Field(i)
+
+		// TODO: Fix condition
+		if !fieldValue.CanInt() && !fieldValue.CanFloat() && !fieldValue.CanUint() {
+			v := fmt.Sprintf("\"%s\"", fieldValue.String())
+			code = append(code, fmt.Sprintf("%s%s: %v,", strings.Repeat(" ", SpaceCharacterNum), field.Name, v))
+		} else {
+			code = append(code, fmt.Sprintf("%s%s: %v,", strings.Repeat(" ", SpaceCharacterNum), field.Name, fieldValue))
+		}
+	}
+
 	code = append(code, "}")
 
 	return code
