@@ -62,9 +62,9 @@ func (protoMessage *ProtoMessage) GenerateFakeDataClass(message *protogen.Messag
 		// TODO: Fix condition
 		if !fieldValue.CanInt() && !fieldValue.CanFloat() && !fieldValue.CanUint() {
 			v := fmt.Sprintf("\"%s\"", fieldValue.String())
-			code = append(code, fmt.Sprintf("%s%s: %v,", strings.Repeat(" ", SpaceCharacterNum), field.Name, v))
+			code = append(code, fmt.Sprintf("%s%s: %v,", strings.Repeat(" ", SpaceCharacterNum), strcase.ToLowerCamel(field.Name), v))
 		} else {
-			code = append(code, fmt.Sprintf("%s%s: %v,", strings.Repeat(" ", SpaceCharacterNum), field.Name, fieldValue))
+			code = append(code, fmt.Sprintf("%s%s: %v,", strings.Repeat(" ", SpaceCharacterNum), strcase.ToLowerCamel(field.Name), fieldValue))
 		}
 	}
 
