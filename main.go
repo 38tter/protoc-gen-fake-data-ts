@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
+	"github.com/go-faker/faker/v4"
 	"github.com/iancoleman/strcase"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -46,7 +48,14 @@ func (protoMessage *ProtoMessage) GenerateFakeDataClass(message *protogen.Messag
 			code,
 			fmt.Sprintf("%s%s", strings.Repeat(" ", SpaceCharacterNum), strcase.ToLowerCamel(field.GoName)),
 		)
-		_ = protoMessage.GenerateStructForFaker(message)
+		str := protoMessage.GenerateStructForFaker(message).Interface()
+		err := faker.FakeData(&str)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		code = append(code, fmt.Sprintf("%+v", str))
 	}
 	code = append(code, "}")
 
@@ -57,16 +66,47 @@ func (protoMessage *ProtoMessage) GenerateStructForFaker(message *protogen.Messa
 	var fields []reflect.StructField
 
 	for _, field := range message.Fields {
-		fields = append(fields, reflect.StructField{
-			Name: field.GoName,
-			//Type: reflect.TypeOf(field.Desc.Kind().String()),
-			Type: reflect.TypeOf(""),
-			Tag:  "",
-		})
+		str, err := mapProtoKindToGoTypes(field)
+		if err != nil {
+			// TODO: error handling
+			continue
+		}
+		fields = append(fields, str)
 	}
 	structDef := reflect.New(reflect.StructOf(fields))
 
 	return structDef.Elem()
+}
+
+func mapProtoKindToGoTypes(field *protogen.Field) (reflect.StructField, error) {
+	switch field.Desc.Kind() {
+	case protoreflect.BoolKind:
+		return reflect.StructField{
+			Name: field.GoName,
+			Type: reflect.TypeOf(true),
+			Tag:  "",
+		}, nil
+	case protoreflect.Int64Kind, protoreflect.Int32Kind:
+		return reflect.StructField{
+			Name: field.GoName,
+			Type: reflect.TypeOf(0),
+			Tag:  "",
+		}, nil
+	case protoreflect.FloatKind, protoreflect.DoubleKind:
+		return reflect.StructField{
+			Name: field.GoName,
+			Type: reflect.TypeOf(0.0),
+			Tag:  "",
+		}, nil
+	case protoreflect.StringKind:
+		return reflect.StructField{
+			Name: field.GoName,
+			Type: reflect.TypeOf(""),
+			Tag:  "",
+		}, nil
+	default:
+		return reflect.StructField{}, errors.New("invalid protoreflect type deteceted")
+	}
 }
 
 func main() {
